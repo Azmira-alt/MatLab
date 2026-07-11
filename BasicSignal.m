@@ -1,4 +1,8 @@
 % --- Problem 1: Basic Signal Generation ---
+clc; clear; close all;
+
+rng(0);                      % Fixed seed for reproducibility
+
 n = -10:10; % Define discrete time vector
 
 % 1. Unit Step Signal u[n]
