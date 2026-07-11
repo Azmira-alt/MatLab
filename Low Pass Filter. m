@@ -1,0 +1,35 @@
+% --- Problem 16: Low-Pass Filter Design ---
+clc; clear; close all;
+
+% Generate a Noisy Test Signal
+fs = 1000;                  % Sampling frequency
+t = 0:1/fs:1;                % 1 second duration
+f_sig = 15;                  % Desired low-frequency signal (15 Hz)
+f_noise = 200;               % High-frequency noise component (200 Hz)
+x_clean = sin(2*pi*f_sig*t);
+x_noisy = x_clean + 0.6*sin(2*pi*f_noise*t);
+
+% Design FIR Low-Pass Filter using fir1
+fc = 40;                     % Cutoff frequency (Hz)
+order = 50;                  % FIR filter order
+b = fir1(order, fc/(fs/2), 'low');
+a = 1;                       % FIR filters have no feedback (denominator = 1)
+
+% Apply Filter
+x_filtered = filter(b, a, x_noisy);
+
+% Plotting
+figure('Name', 'Problem 16: Low-Pass Filter Design');
+subplot(2,1,1);
+plot(t, x_noisy, 'r');
+title('Noisy Signal (15 Hz + 200 Hz) — Before Filtering');
+xlabel('Time (s)'); ylabel('Amplitude'); grid on;
+
+subplot(2,1,2);
+plot(t, x_filtered, 'b', 'LineWidth', 1.5);
+title('Filtered Signal (FIR Low-Pass, 40 Hz cutoff) — After Filtering');
+xlabel('Time (s)'); ylabel('Amplitude'); grid on;
+
+% Display Filter Order
+fprintf('FIR filter order: %d\n', order);
+fprintf('Number of filter coefficients: %d\n', length(b));
