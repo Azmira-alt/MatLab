@@ -1,13 +1,15 @@
 % --- Problem 12: Short-Time Fourier Transform (STFT) ---
-fs = 1000;              % Sampling frequency
-t = 0:1/fs:2;           % 2 seconds duration
+clc; clear; close all;
+rng(0);                      
+fs = 1000;              
+t = 0:1/fs:2;           
 
 % 1. Stationary Signal (Constant 100 Hz and 250 Hz)
 x_static = sin(2*pi*100*t) + sin(2*pi*250*t);
 
 % 2. Non-Stationary Signal (Chirp signal: frequency increases over time)
 % Starts at 50 Hz and sweeps up to 400 Hz
-x_chirp = chirp(t, 50, 2, 400); 
+x_chirp = chirp(t, 50, 2, 400);
 
 % --- Plotting Spectrograms ---
 figure('Name', 'Problem 12: STFT Analysis');
