@@ -1,0 +1,53 @@
+% --- Problem 14: Correlation & Covariance ---
+clc; clear; close all;
+
+rng(0);                      % Fixed seed for reproducibility
+
+%% ---- Generate Two Related Signals ----
+fs = 1000;
+t = 0:1/fs:1;
+
+f_sig = 10;
+x = sin(2*pi*f_sig*t);              % Base signal
+delay_samples = 50;                  % Delay for cross-correlation demo
+y = [zeros(1, delay_samples), x(1:end-delay_samples)]; % Delayed version of x
+
+%% ---- Auto-correlation ----
+[acf, lags_acf] = xcorr(x, 'coeff'); % Normalized auto-correlation
+
+%% ---- Cross-correlation ----
+[ccf, lags_ccf] = xcorr(x, y, 'coeff'); % Normalized cross-correlation
+[~, max_idx] = max(ccf);
+estimated_delay = lags_ccf(max_idx);
+
+%% ---- Covariance ----
+cov_matrix = cov(x, y);
+covariance_xy = cov_matrix(1,2);
+
+%% ---- Plotting ----
+figure('Name', 'Problem 14: Correlation and Covariance');
+
+subplot(3,1,1);
+plot(lags_acf, acf, 'b');
+title('Auto-correlation of x[n]');
+xlabel('Lag (samples)'); ylabel('Normalized Correlation'); grid on;
+
+subplot(3,1,2);
+plot(lags_ccf, ccf, 'r');
+hold on;
+xline(estimated_delay, 'g--', 'LineWidth', 1.2);
+title('Cross-correlation between x[n] and y[n] (delayed)');
+xlabel('Lag (samples)'); ylabel('Normalized Correlation');
+legend('Cross-correlation', 'Peak (Estimated Delay)'); grid on;
+
+subplot(3,1,3);
+plot(t, x, 'b', 'LineWidth', 1.2); hold on;
+plot(t, y, 'r', 'LineWidth', 1.2);
+title('Original Signal x[n] vs Delayed Signal y[n]');
+xlabel('Time (s)'); ylabel('Amplitude');
+legend('x[n]', 'y[n] (delayed)'); grid on;
+
+%% ---- Display Results ----
+fprintf('True delay applied: %d samples\n', delay_samples);
+fprintf('Estimated delay from cross-correlation peak: %d samples\n', estimated_delay);
+fprintf('Covariance between x and y: %.4f\n', covariance_xy);
