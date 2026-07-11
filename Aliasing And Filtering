@@ -1,0 +1,57 @@
+% --- Experiment 23: Aliasing + Filtering Combined ---
+fs_high = 10000;               % High sampling rate to simulate continuous time
+t = 0:1/fs_high:0.1-1/fs_high; % 0.1 seconds
+
+% 1. Generate Composite Signal (100 Hz + 800 Hz)
+f1 = 100;                      % Desired baseband signal
+f2 = 800;                      % High-frequency noise
+x = sin(2*pi*f1*t) + 0.5*sin(2*pi*f2*t);
+
+% 2. Under-sample the signal (Sample at 1000 Hz)
+% Nyquist for 800 Hz is 1600 Hz. Sampling at 1000 Hz WILL cause aliasing.
+fs_low = 1000;
+t_samp = 0:1/fs_low:0.1-1/fs_low;
+x_aliased = sin(2*pi*f1*t_samp) + 0.5*sin(2*pi*f2*t_samp);
+
+% 3. Design and Apply Anti-Aliasing Filter (Low-pass)
+% Cutoff frequency must be less than fs_low/2 (500 Hz). Let's use 400 Hz.
+cutoff = 400 / (fs_high/2);
+order = 4;
+[b, a] = butter(order, cutoff, 'low');
+x_filtered_analog = filtfilt(b, a, x);   % <-- changed from filter() to filtfilt()
+
+% 4. Sample the filtered signal
+x_proper = sin(2*pi*f1*t_samp); % Theoretical ideal (only 100 Hz remains)
+x_filtered_sampled = downsample(x_filtered_analog, fs_high/fs_low);
+
+% 5. Quantify Improvement (RMS Error vs Ideal 100 Hz reference)
+err_unfiltered = sqrt(mean((x_aliased - x_proper).^2));
+err_filtered   = sqrt(mean((x_filtered_sampled - x_proper).^2));
+improvement_pct = 100 * (err_unfiltered - err_filtered) / err_unfiltered;
+
+fprintf('RMS Error WITHOUT filter: %.4f\n', err_unfiltered);
+fprintf('RMS Error WITH filter:    %.4f\n', err_filtered);
+fprintf('Improvement: %.1f%% reduction in error\n', improvement_pct);
+
+% --- Plotting ---
+figure('Name', 'Experiment 23: Aliasing and Anti-Aliasing');
+
+% Plot 1: Original Continuous Signal
+subplot(3,1,1);
+plot(t, x, 'k');
+title('Original "Continuous" Signal (100 Hz + 800 Hz)');
+xlabel('Time (s)'); ylabel('Amplitude'); grid on;
+
+% Plot 2: Sampled without Filter (Aliased)
+subplot(3,1,2);
+plot(t_samp, x_aliased, 'r-o', 'LineWidth', 1.5);
+title('Sampled at 1000 Hz WITHOUT Filter (Aliasing Occurs)');
+xlabel('Time (s)'); ylabel('Amplitude'); grid on;
+
+% Plot 3: Sampled WITH Anti-Aliasing Filter
+subplot(3,1,3);
+plot(t_samp, x_filtered_sampled, 'b-o', 'LineWidth', 1.5); hold on;
+plot(t_samp, x_proper, 'g--', 'LineWidth', 1.5); % Overlay ideal 100Hz
+title(sprintf('Sampled at 1000 Hz WITH Anti-Aliasing Filter (Error: %.1f%% lower)', improvement_pct));
+legend('Filtered & Sampled', 'Ideal 100Hz');
+xlabel('Time (s)'); ylabel('Amplitude'); grid on;
